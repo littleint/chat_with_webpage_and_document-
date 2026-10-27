@@ -1,45 +1,71 @@
-# LlamaReader - Webpage RAG Assistant
+# 🦙 LlamaReader AI — ChatGPT for Documents & Webpages
 
-A fast, interactive Retrieval-Augmented Generation (RAG) web application powered by **LlamaIndex**, **Groq LLM**, and **FastAPI**.
+A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **FastAPI**, and **SQLite**.
 
-Extract text from any public webpage, index it into a vector store in memory, and ask questions to get context-grounded answers with low latency.
+Upload PDFs, text documents, or paste any public webpage URL to chat with them in real time with word-by-word streaming, persistent conversation history, and a modern collapsible sidebar.
 
 ---
 
-## 🚀 Features
+## 🌟 Key Features
 
-- **Live Web Scraping**: Clean text extraction using `requests` and `html2text`.
-- **In-Memory Vector Search**: Documents are embedded and indexed via LlamaIndex (`VectorStoreIndex`).
-- **Conversational Memory**: Retains multi-turn dialogue context directly in RAM using `ChatMemoryBuffer` and `condense_plus_context` mode.
-- **Interactive UI**: Clean, responsive web interface with single-click chat reset and real-time status tracking.
-- **FastAPI Backend**: Asynchronous REST endpoints for page indexing, multi-turn querying, and memory management.
+- **💬 ChatGPT-Style Interface**:
+  - Sleek modern dark workspace with collapsible left sidebar.
+  - Chronological conversation history categorized into **Today**, **Previous 7 Days**, and **Older**.
+  - **"+ New Chat"** button with inline conversation renaming and deletion.
+  - Clean center prompt area: *"What can I help with?"* and quick-start action pills.
+
+- **🔒 User Authentication & Privacy (Register Once, Login Anytime)**:
+  - Local **SQLite (`llamareader.db`)** database with salted `bcrypt` password hashing.
+  - Persistent JWT session tokens stored in the browser — users stay logged in across page refreshes and server restarts.
+  - **Multi-Tenant Isolation**: Each user can only view, query, and manage their own private chats and documents.
+  - **⚡ Quick Demo Login**: One-click instant login button for immediate evaluation without typing credentials.
+
+- **⚡ Real-Time Streaming & "Stop Generating" (⏹️)**:
+  - **Word-by-Word Token Streaming**: Answers stream in real-time via Server-Sent Events (SSE).
+  - **Instant Cancellation**: The Send button transforms into a square **Stop Button (⏹️)** with an `AbortController` to halt generation instantly if a question is off-track.
+
+- **📚 Multi-Document RAG**:
+  - **Webpages**: Scrape and index articles, blogs, and documentation URLs using `requests` and `html2text`.
+  - **Files**: Drag-and-drop or upload PDF, TXT, Markdown, CSV, and log files.
+
+- **💾 100% Local Persistent Vector Storage**:
+  - Each conversation saves its vector index to a dedicated local directory:
+    ```text
+    storage/indices/{conversation_id}/
+    ```
+  - **Zero Re-indexing Overhead**: Switching between chats in the sidebar reloads the pre-computed embeddings and document text from disk in milliseconds.
+  - Prior chat messages are automatically rehydrated into LlamaIndex's `ChatMemoryBuffer` for multi-turn conversational context.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: FastAPI, Uvicorn
-- **RAG & Orchestration**: LlamaIndex (`llama-index-llms-groq`, `llama-index-embeddings-huggingface`)
-- **Scraping / Parsing**: Requests, HTML2Text
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend API** | FastAPI, Uvicorn, Pydantic, Python-Multipart |
+| **AI / RAG Framework** | LlamaIndex (`VectorStoreIndex`, `ChatMemoryBuffer`, `SimpleChatEngine`) |
+| **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **HuggingFace** (`BAAI/bge-small-en-v1.5`) |
+| **Database & Auth** | SQLite, SQLAlchemy ORM, Bcrypt, PyJWT |
+| **Document Parsers** | PyPDF, HTML2Text, Requests |
+| **Frontend** | Vanilla HTML5, Modern CSS3 (ChatGPT Dark Theme), JavaScript (ES6+), Marked.js, Highlight.js |
 
 ---
 
-## 📦 Getting Started
+## 🚀 Getting Started
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/llamaindex-web-rag.git
-cd llamaindex-web-rag
+git clone https://github.com/littleint/chat-with-webpage.git
+cd chat-with-webpage
 ```
 
 ### 2. Create and activate a virtual environment
-```bash
-# Windows
+```powershell
+# Windows PowerShell
 python -m venv venv
-venv\Scripts\activate
+.\venv\Scripts\Activate.ps1
 
-# macOS/Linux
+# macOS / Linux
 python3 -m venv venv
 source venv/bin/activate
 ```
@@ -49,34 +75,84 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
-Create a `.env` file in the root directory:
+### 4. Configure environment variables
+Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
 ```
+*(Get your free high-speed API key at [console.groq.com](https://console.groq.com)).*
 
-### 5. Run the application
-```bash
+### 5. Launch the application
+```powershell
 python run.py
 ```
 
-The app will open automatically at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+The web app will be available at:
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
 
 ---
 
 ## 📂 Project Structure
 
 ```text
+llamaindex_project/
 ├── app/
-│   ├── main.py          # FastAPI application routes
-│   └── rag_engine.py    # Scraping, indexing, and query engine logic
+│   ├── auth.py              # Password hashing (bcrypt) & JWT token handling
+│   ├── config.py            # Groq LLM & HuggingFace embedding settings
+│   ├── database.py          # SQLite connection and session management
+│   ├── loaders.py           # Web scraping & PDF/TXT document ingestion
+│   ├── main.py              # FastAPI REST endpoints & SSE streaming
+│   ├── models.py            # SQLAlchemy models (User, Conversation, Message)
+│   └── rag_engine.py        # Vector index management, persistence & memory
 ├── static/
-│   ├── css/style.css    # UI styling
-│   ├── js/app.js        # Client-side logic and API calls
-│   └── index.html       # Web application interface
-├── .env                 # API keys (ignored by git)
-├── .gitignore           # Git ignore rules
-├── requirements.txt     # Python dependencies
-├── run.py               # Application launcher
-└── README.md            # Project documentation
+│   ├── css/
+│   │   └── style.css        # ChatGPT dark theme stylesheet
+│   ├── js/
+│   │   └── app.js           # Client-side state, streaming reader & UI logic
+│   └── index.html           # Single-page application HTML layout
+├── storage/                 # Local vector indices (ignored by Git)
+│   └── indices/
+│       └── {conv_id}/       # On-disk vector store and docstore JSON files
+├── llamareader.db           # Local SQLite database (ignored by Git)
+├── temp_uploads/            # Temporary upload buffer (ignored by Git)
+├── .env                     # API keys (ignored by Git)
+├── .gitignore               # Excludes secrets, databases & vector storage
+├── requirements.txt         # Project Python dependencies
+├── run.py                   # Application startup script
+└── README.md                # Project documentation
 ```
+
+---
+
+## 🔌 API Reference
+
+### Authentication
+- `POST /api/auth/register` — Create a new account with hashed password.
+- `POST /api/auth/login` — Authenticate credentials and return a signed JWT token.
+- `GET /api/auth/me` — Verify current user session.
+
+### Conversations
+- `GET /api/conversations` — List all conversations for the authenticated user.
+- `POST /api/conversations` — Create a new conversation session.
+- `GET /api/conversations/{id}` — Fetch conversation details, attached document info, and full message history.
+- `PATCH /api/conversations/{id}` — Rename a conversation title.
+- `DELETE /api/conversations/{id}` — Delete a conversation, its messages, and its persistent vector index on disk.
+
+### Document Ingestion & Querying
+- `POST /api/conversations/{id}/index-url` — Scrape and index a webpage URL for this chat.
+- `POST /api/conversations/{id}/upload` — Upload and index a PDF or TXT file for this chat.
+- `POST /api/conversations/{id}/query` — Stream real-time answers (`text/event-stream`) with multi-turn memory.
+
+---
+
+## 🔒 Security & Privacy
+
+- **100% Local Data**: All chat messages, user records, and vector indices stay on your machine in `llamareader.db` and `storage/indices/`.
+- **Git Protection**: `.gitignore` is strictly configured to prevent accidentally committing `.env` API keys, database files, or document stores to GitHub.
+- **Passwords**: Passwords are cryptographically salted and hashed using `bcrypt` before storage.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
