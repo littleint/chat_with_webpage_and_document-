@@ -9,3 +9,7 @@ fastapi
 uvicorn
 pypdf
 python-multipart
+sqlalchemy
+passlib[bcrypt]
+pyjwt
+bcrypt

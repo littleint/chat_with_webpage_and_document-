@@ -8,11 +8,25 @@ ENV/
 .env
 *.env
 
+# SQLite Databases & User Data
+*.db
+*.sqlite
+*.sqlite3
+llamareader.db
+
+# LlamaIndex Vector Storage & Indices
+storage/
+indices/
+
+# Temporary Uploads & File Staging
+temp_uploads/
+
 # Python bytecode & cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.cache/
 
 # IDE / Editor configs
 .vscode/
@@ -21,3 +35,7 @@ __pycache__/
 # OS specific files
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Logs
+*.log
